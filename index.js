@@ -103,7 +103,7 @@ Array.prototype.random = function () {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Hour(s) approved by <@${body.user.id}>`
+                        "text": `Hour(s) *approved* by <@${body.user.id}>`
                     }
                 },
                 {
@@ -172,7 +172,7 @@ Array.prototype.random = function () {
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": `Hour(s) rejected by <@${body.user.id}>`
+                        "text": `Hour(s) *rejected* by <@${body.user.id}>`
                     }
                 },
                 {
