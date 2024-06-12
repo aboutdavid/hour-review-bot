@@ -277,36 +277,34 @@ Array.prototype.random = function () {
                 },
             )
 
-            if (!urlsExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ No URLs were detected in the thread.`,
-                        "emoji": true
-                    }
-                })
-            }
-            if (!imagesExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ No images were detected in the thread.`,
-                        "emoji": true
-                    }
-                })
-            }
-            if (!userSpeechExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ The user did not speak in the thread at all.`,
-                        "emoji": true
-                    }
-                })
-            }
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !urlsExist ? `⚠️ No URLs were detected in the thread.` : "✅ 1 or more URL(s) were detected in the thread.",
+                    "emoji": true
+                }
+            })
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !imagesExist ? `⚠️ No images were detected in the thread.` : "✅ 1 or more file(s) were detected in the thread.",
+                    "emoji": true
+                }
+            })
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !userSpeechExist ? `⚠️ The user did not speak in the thread at all.` : "✅ The user did speak in the thread.",
+                    "emoji": true
+                }
+            })
+
             blocks.push(
                 {
                     "type": "actions",
