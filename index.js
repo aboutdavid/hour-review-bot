@@ -16,6 +16,49 @@ Array.prototype.random = function () {
 
 (async () => {
 
+    app.action('approve', async ({ ack, say, body }) => {
+        const id = body.actions[0].value
+        base('V2: Sessions').update([
+            {
+                id,
+                fields: {
+                    Status: "Approved"
+                }
+            },
+        ])
+        await ack();
+        await app.client.chat.update({
+            ts: body.message.ts,
+            channel: process.env.SLACK_CHANNEL,
+            text: `Hours approved by <@${body.user.id}>`
+        })
+    });
+    app.action('deny', async ({ ack, say, body }) => {
+        const id = body.actions[0].value
+        await ack();
+        base('V2: Sessions').update([
+            {
+                id,
+                fields: {
+                    Status: "Rejected"
+                }
+            },
+        ])
+        await app.client.chat.update({
+            ts: body.message.ts,
+            channel: process.env.SLACK_CHANNEL,
+            text: `Hours denied by <@${body.user.id}>`
+        })
+    });
+    app.action('skip', async ({ ack, say, body }) => {
+        await ack();
+        await app.client.chat.update({
+            ts: body.message.ts,
+            channel: process.env.SLACK_CHANNEL,
+            text: `Skipped for now :thumbsup-dino:`
+        })
+
+    });
     app.message('gib', async ({ message, say }) => {
         if (message.channel != process.env.SLACK_CHANNEL) return
         base('V2: Sessions').select({
@@ -24,7 +67,6 @@ Array.prototype.random = function () {
             const record = records.random()
             const blocks = []
             if (err) { console.error(err); return; }
-            console.log(new URL(record.get('Code URL')).searchParams.get("thread_ts"))
             const thread = await app.client.conversations.replies({
                 channel: "C06SBHMQU8G",
                 ts: new URL(record.get('Code URL')).searchParams.get("thread_ts")
@@ -32,34 +74,7 @@ Array.prototype.random = function () {
             const urlsExist = thread.messages.find(message => getUrls(message.text).size > 0)
             const imagesExist = thread.messages.find(message => message.files?.length > 0)
             const userSpeechExist = thread.messages.find(message => message.user != "U06TW2N6C5R" && !message.bot_id && !message.app_id)
-            app.action('approve', async ({ ack, say, body }) => {
-                const id = body.actions[0].value
-                base('V2: Sessions').update
-                await ack();
-                await app.client.chat.update({
-                    ts: body.message.ts,
-                    channel: process.env.SLACK_CHANNEL,
-                    text: `Hours approved by <@${body.user.id}>`
-                })
-            });
-            app.action('deny', async ({ ack, say, body }) => {
-                const id = body.actions[0].value
-                await ack();
-                await app.client.chat.update({
-                    ts: body.message.ts,
-                    channel: process.env.SLACK_CHANNEL,
-                    text: `Hours denied by <@${body.user.id}>`
-                })
-            });
-            app.action('skip', async ({ ack, say, body }) => {
-                await ack();
-                await app.client.chat.update({
-                    ts: body.message.ts,
-                    channel: process.env.SLACK_CHANNEL,
-                    text: `Skipped for now :thumbsup-dino:`
-                })
 
-            });
             blocks.push(
                 {
                     "type": "section",
@@ -132,7 +147,7 @@ Array.prototype.random = function () {
                                 "text": "Approve",
                                 "emoji": true
                             },
-                            "value": "click_me_123",
+                            "value": record.id,
                             "action_id": "approve"
                         },
                         {
@@ -142,7 +157,7 @@ Array.prototype.random = function () {
                                 "text": "Deny",
                                 "emoji": true
                             },
-                            "value": "click_me_123",
+                            "value": record.id,
                             "action_id": "deny"
                         },
                         {
@@ -152,7 +167,7 @@ Array.prototype.random = function () {
                                 "text": "Skip",
                                 "emoji": true
                             },
-                            "value": "click_me_123",
+                            "value": record.id,
                             "action_id": "skip"
                         }
                     ]
