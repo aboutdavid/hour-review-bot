@@ -234,6 +234,7 @@ Array.prototype.random = function () {
         base('V2: Sessions').select({
             view: "Hour Review Bot View"
         }).firstPage(async function (err, records) {
+            if (records.length == 0) return await say(":yay: All applications reviewed.")
             const record = records.random()
             const blocks = []
             if (err) { console.error(err); return; }
