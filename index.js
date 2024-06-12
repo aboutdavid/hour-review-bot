@@ -18,7 +18,7 @@ Array.prototype.random = function () {
     app.action('undo', async ({ ack, say, body }) => {
         const json = JSON.parse(body.actions[0].value)
         const id = json.recordId
-        base('V2: Sessions').update([
+        base(process.env.AIRTABLE_TABLE).update([
             {
                 id,
                 fields: {
@@ -86,7 +86,7 @@ Array.prototype.random = function () {
     app.action('approve', async ({ ack, say, body }) => {
         const json = JSON.parse(body.actions[0].value)
         const id = json.recordId
-        base('V2: Sessions').update([
+        base(process.env.AIRTABLE_TABLE).update([
             {
                 id,
                 fields: {
@@ -156,7 +156,7 @@ Array.prototype.random = function () {
         const json = JSON.parse(body.actions[0].value)
         const id = json.recordId
         await ack();
-        base('V2: Sessions').update([
+        base(process.env.AIRTABLE_TABLE).update([
             {
                 id,
                 fields: {
@@ -231,20 +231,34 @@ Array.prototype.random = function () {
     });
     app.message('gib', async ({ message, say }) => {
         if (message.channel != process.env.SLACK_CHANNEL) return
-        base('V2: Sessions').select({
+        base(process.env.AIRTABLE_TABLE).select({
             view: "Hour Review Bot View"
         }).firstPage(async function (err, records) {
             if (records.length == 0) return await say(":yay: All applications reviewed.")
             const record = records.random()
             const blocks = []
             if (err) { console.error(err); return; }
-            const thread = await app.client.conversations.replies({
-                channel: "C06SBHMQU8G",
-                ts: new URL(record.get('Code URL')).searchParams.get("thread_ts")
-            })
-            const urlsExist = thread.messages.find(message => getUrls(message.text).size > 0)
-            const imagesExist = thread.messages.find(message => message.files?.length > 0)
-            const userSpeechExist = thread.messages.find(message => message.user != "U06TW2N6C5R" && !message.bot_id && !message.app_id)
+            var thread = null
+            var threadFetchErr = false
+            /* If thread lookup fails, this is done to supress the warning. */
+            var urlsExist = true
+            var imagesExist = true
+            var userSpeechExist = true
+            try {
+                thread = await app.client.conversations.replies({
+                    channel: new URL(record.get('Code URL')).searchParams.get("cid"),
+                    ts: new URL(record.get('Code URL')).searchParams.get("thread_ts")
+                })
+            } catch (e) {
+                console.warn(e)
+                threadFetchErr = true
+
+            }
+            if (!threadFetchErr) {
+                urlsExist = thread.messages.find(message => getUrls(message.text).size > 0)
+                imagesExist = thread.messages.find(message => message.files?.length > 0)
+                userSpeechExist = thread.messages.find(message => message.user != "U06TW2N6C5R" && !message.bot_id && !message.app_id)
+            }
 
             blocks.push(
                 {
@@ -303,6 +317,16 @@ Array.prototype.random = function () {
                     "text": {
                         "type": "plain_text",
                         "text": `⚠️ The user did not speak in the thread at all.`,
+                        "emoji": true
+                    }
+                })
+            }
+            if (threadFetchErr) {
+                blocks.push({
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `⚠️ The thread does not exist or is inaccessible to the Arcade Checker. No automatic checks were performed.`,
                         "emoji": true
                     }
                 })
