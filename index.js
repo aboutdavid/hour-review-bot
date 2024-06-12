@@ -15,9 +15,26 @@ Array.prototype.random = function () {
 };
 
 (async () => {
-
+    app.action('undo', async ({ ack, say, body }) => {
+        const json = JSON.parse(body.actions[0].value)
+        const id = json.recordId
+        base('V2: Sessions').update([
+            {
+                id,
+                fields: {
+                    Status: "Unreviewed"
+                }
+            },
+        ])
+        await app.client.chat.update({
+            ts: body.message.ts,
+            channel: process.env.SLACK_CHANNEL,
+            text: `Decision reversed by <@${body.user.id}>`
+        })
+    })
     app.action('approve', async ({ ack, say, body }) => {
-        const id = body.actions[0].value
+        const json = JSON.parse(body.actions[0].value)
+        const id = json.recordId
         base('V2: Sessions').update([
             {
                 id,
@@ -30,11 +47,42 @@ Array.prototype.random = function () {
         await app.client.chat.update({
             ts: body.message.ts,
             channel: process.env.SLACK_CHANNEL,
-            text: `Hours approved by <@${body.user.id}>`
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Hour(s) approved by <@${body.user.id}>`
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Original thread: ${json.threadURL}`
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Undo Approval",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "undo"
+                        }
+                    ]
+                }
+            ]
         })
     });
     app.action('deny', async ({ ack, say, body }) => {
-        const id = body.actions[0].value
+        const json = JSON.parse(body.actions[0].value)
+        const id = json.recordId
         await ack();
         base('V2: Sessions').update([
             {
@@ -47,7 +95,37 @@ Array.prototype.random = function () {
         await app.client.chat.update({
             ts: body.message.ts,
             channel: process.env.SLACK_CHANNEL,
-            text: `Hours denied by <@${body.user.id}>`
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Hour(s) rejected by <@${body.user.id}>`
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Original thread: ${json.threadURL}`
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Undo Rejection",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "undo"
+                        }
+                    ]
+                }
+            ]
         })
     });
     app.action('skip', async ({ ack, say, body }) => {
@@ -147,7 +225,10 @@ Array.prototype.random = function () {
                                 "text": "Approve",
                                 "emoji": true
                             },
-                            "value": record.id,
+                            "value": JSON.stringify({
+                                recordId: record.id,
+                                threadURL: record.get('Code URL')
+                            }),
                             "action_id": "approve"
                         },
                         {
@@ -157,7 +238,10 @@ Array.prototype.random = function () {
                                 "text": "Deny",
                                 "emoji": true
                             },
-                            "value": record.id,
+                            "value": JSON.stringify({
+                                recordId: record.id,
+                                threadURL: record.get('Code URL')
+                            }),
                             "action_id": "deny"
                         },
                         {
@@ -167,7 +251,10 @@ Array.prototype.random = function () {
                                 "text": "Skip",
                                 "emoji": true
                             },
-                            "value": record.id,
+                            "value": JSON.stringify({
+                                recordId: record.id,
+                                threadURL: record.get('Code URL')
+                            }),
                             "action_id": "skip"
                         }
                     ]
