@@ -29,7 +29,58 @@ Array.prototype.random = function () {
         await app.client.chat.update({
             ts: body.message.ts,
             channel: process.env.SLACK_CHANNEL,
-            text: `Decision reversed by <@${body.user.id}>`
+            blocks: [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Decision reversed by <@${body.user.id}>`
+                    }
+                },
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `Original thread: ${json.threadURL}`
+                    }
+                },
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Undo Approval",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "undo"
+                        },
+
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Approval",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "approve"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Denial",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "deny"
+                        }
+                    ]
+                }
+            ]
         })
     })
     app.action('approve', async ({ ack, say, body }) => {
@@ -74,6 +125,27 @@ Array.prototype.random = function () {
                             },
                             "value": JSON.stringify(json),
                             "action_id": "undo"
+                        },
+
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Approval",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "approve"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Denial",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "deny"
                         }
                     ]
                 }
@@ -122,6 +194,26 @@ Array.prototype.random = function () {
                             },
                             "value": JSON.stringify(json),
                             "action_id": "undo"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Approval",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "approve"
+                        },
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": "Convert to Denial",
+                                "emoji": true
+                            },
+                            "value": JSON.stringify(json),
+                            "action_id": "deny"
                         }
                     ]
                 }
