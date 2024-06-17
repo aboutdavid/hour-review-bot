@@ -234,7 +234,7 @@ Array.prototype.random = function () {
 
     });
     app.message('gib', async ({ message, say }) => {
-        if (message.channel != process.env.SLACK_CHANNEL) return
+        if (message.channel != process.env.SLACK_CHANNEL || !message.text || message.text.toLowerCase().trim() != "gib") return
         try {
             await app.client.conversations.join({
                 channel: message.channel,
