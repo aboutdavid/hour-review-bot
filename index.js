@@ -24,7 +24,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Unreviewed",
-                    "Percentage Approved": "0"
+                    "Percentage Approved": 0
                 }
             },
         ])
@@ -93,7 +93,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Approved",
-                    "Percentage Approved": "100"
+                    "Percentage Approved": 100
                 }
             },
         ])
@@ -164,7 +164,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Rejected",
-                    "Percentage Approved": "0"
+                    "Percentage Approved": 0
                 }
             },
         ])
