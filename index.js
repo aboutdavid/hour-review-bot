@@ -235,6 +235,14 @@ Array.prototype.random = function () {
     });
     app.message('gib', async ({ message, say }) => {
         if (message.channel != process.env.SLACK_CHANNEL) return
+        try {
+            await app.client.conversations.join({
+                channel: message.channel,
+              });
+        } catch(e){
+            // This should at least try joining the channel to make lookups work4
+            // If checks fail, it does not 100% matter but would be nice :)
+        }
         base(process.env.AIRTABLE_TABLE).select({
             view: "Hour Review Bot View"
         }).firstPage(async function (err, records) {
@@ -295,36 +303,33 @@ Array.prototype.random = function () {
                 },
             )
 
-            if (!urlsExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ No URLs were detected in the thread.`,
-                        "emoji": true
-                    }
-                })
-            }
-            if (!imagesExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ No images were detected in the thread.`,
-                        "emoji": true
-                    }
-                })
-            }
-            if (!userSpeechExist) {
-                blocks.push({
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": `⚠️ The user did not speak in the thread at all.`,
-                        "emoji": true
-                    }
-                })
-            }
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !urlsExist ? `⚠️ No URLs were detected in the thread.` : "✅ One or more URLs were detected in the thread.",
+                    "emoji": true
+                }
+            })
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !imagesExist ? `⚠️ No images were detected in the thread.` : "✅ One or more images were detected in the thread",
+                    "emoji": true
+                }
+            })
+
+            blocks.push({
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": !userSpeechExist ? `⚠️ The user did not speak in the thread at all.` : "✅ The user did speak in the thread",
+                    "emoji": true
+                }
+            })
+
             if (threadFetchErr) {
                 blocks.push({
                     "type": "section",
@@ -391,3 +396,7 @@ Array.prototype.random = function () {
     await app.start(process.env.PORT || 3008);
     console.log('Hour Reviewer is running!');
 })();
+
+process.on("unhandledRejection", (error) => {
+    console.error(error);
+});
