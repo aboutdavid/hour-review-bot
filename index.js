@@ -24,7 +24,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Unreviewed",
-                    "Approved Minutes": "0"
+                    "Percentage Approved": "0%"
                 }
             },
         ])
@@ -93,7 +93,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Approved",
-                    "Approved Minutes": json.minutes
+                    "Percentage Approved": "100%"
                 }
             },
         ])
@@ -164,7 +164,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Rejected",
-                    "Approved Minutes": "0"
+                    "Percentage Approved": "0%"
                 }
             },
         ])
@@ -341,6 +341,14 @@ Array.prototype.random = function () {
                 })
             }
             blocks.push(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "plain_text",
+                        "text": `⚠️ If you wish to modify the amount of approved minutes, please use the Airtable base directly until a UI is created,`,
+                        "emoji": true
+                    }
+                },
                 {
                     "type": "actions",
                     "elements": [
