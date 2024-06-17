@@ -1,8 +1,17 @@
 {
+  "name": "hreview",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:aboutdavid/hour-review-bot.git",
+  "author": "David",
   "dependencies": {
     "@slack/bolt": "^3.18.0",
     "airtable": "^0.12.2",
     "dotenv": "^16.4.5",
     "get-urls": "10.0.1"
-  }
+  },
+  "scripts": {
+    "start": "node ."
+  },
+  "license": "MIT"
 }

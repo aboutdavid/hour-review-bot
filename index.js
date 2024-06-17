@@ -6,8 +6,9 @@ const getUrls = require('get-urls');
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
     signingSecret: process.env.SLACK_SIGNING_SECRET,
-    socketMode: true,
+    socketMode: Boolean(process.env.PORT),
     appToken: process.env.SLACK_APP_TOKEN,
+    port: process.env.PORT
 });
 
 Array.prototype.random = function () {
@@ -22,7 +23,8 @@ Array.prototype.random = function () {
             {
                 id,
                 fields: {
-                    Status: "Unreviewed"
+                    Status: "Unreviewed",
+                    "Approved Minutes": "0"
                 }
             },
         ])
@@ -90,7 +92,8 @@ Array.prototype.random = function () {
             {
                 id,
                 fields: {
-                    Status: "Approved"
+                    Status: "Approved",
+                    "Approved Minutes": json.minutes
                 }
             },
         ])
@@ -160,7 +163,8 @@ Array.prototype.random = function () {
             {
                 id,
                 fields: {
-                    Status: "Rejected"
+                    Status: "Rejected",
+                    "Approved Minutes": "0"
                 }
             },
         ])
@@ -344,7 +348,8 @@ Array.prototype.random = function () {
                             },
                             "value": JSON.stringify({
                                 recordId: record.id,
-                                threadURL: record.get('Code URL')
+                                threadURL: record.get('Code URL'),
+                                minutes: record.get("Minutes")
                             }),
                             "action_id": "approve"
                         },
@@ -357,7 +362,8 @@ Array.prototype.random = function () {
                             },
                             "value": JSON.stringify({
                                 recordId: record.id,
-                                threadURL: record.get('Code URL')
+                                threadURL: record.get('Code URL'),
+                                minutes: record.get("Minutes")
                             }),
                             "action_id": "deny"
                         },
@@ -370,7 +376,8 @@ Array.prototype.random = function () {
                             },
                             "value": JSON.stringify({
                                 recordId: record.id,
-                                threadURL: record.get('Code URL')
+                                threadURL: record.get('Code URL'),
+                                minutes: record.get("Minutes")
                             }),
                             "action_id": "skip"
                         }
