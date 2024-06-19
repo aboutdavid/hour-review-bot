@@ -412,8 +412,8 @@ Array.prototype.random = function () {
             r.forEach(record => {
                 total += record._rawJson.fields.Minutes
             })
-            await respond(`Total minute(s) awaiting their fate: ${total}
-Total session(s) awaiting their fate: ${r.length}`)
+            await respond(`Total minute(s) awaiting their fate: ${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+Total session(s) awaiting their fate: ${r.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`)
         })
 
     });
