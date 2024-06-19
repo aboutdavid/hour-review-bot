@@ -413,7 +413,7 @@ Array.prototype.random = function () {
                 total += record._rawJson.fields.Minutes
             })
             await respond(`Total minute(s) awaiting their fate: ${total}
-Total sessions awaiting their fate: ${r.length}`)
+Total session(s) awaiting their fate: ${r.length}`)
         })
 
     });
