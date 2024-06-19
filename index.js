@@ -238,8 +238,8 @@ Array.prototype.random = function () {
         try {
             await app.client.conversations.join({
                 channel: message.channel,
-              });
-        } catch(e){
+            });
+        } catch (e) {
             // This should at least try joining the channel to make lookups work4
             // If checks fail, it does not 100% matter but would be nice :)
         }
@@ -401,6 +401,22 @@ Array.prototype.random = function () {
         });
 
     })
+
+    app.command('/reviewstats', async ({ ack, respond }) => {
+        await ack()
+
+        base(process.env.AIRTABLE_TABLE).select({
+            view: "Hour Review Bot View"
+        }).all(async function (err, r) {
+            var total = 0
+            r.forEach(record => {
+                total += record._rawJson.fields.Minutes
+            })
+            await respond(`Total minute(s) awaiting their fate: ${total}
+Total sessions awaiting their fate: ${r.length}`)
+        })
+
+    });
     await app.start(process.env.PORT || 3008);
     console.log('Hour Reviewer is running!');
 })();
