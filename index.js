@@ -93,7 +93,7 @@ Array.prototype.random = function () {
                 id,
                 fields: {
                     Status: "Approved",
-                    "Percentage Approved": 100
+                    "Percentage Approved": 1
                 }
             },
         ])
