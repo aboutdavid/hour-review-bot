@@ -2,6 +2,7 @@ require("dotenv").config();
 const Airtable = require('airtable')
 const { App } = require("@slack/bolt");
 var base = new Airtable({ apiKey: process.env.AIRTABLE_TOKEN }).base(process.env.AIRTABLE_BASE);
+const { humanReadableDiff } = require("./utils")
 const getUrls = require('get-urls');
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
@@ -271,6 +272,30 @@ Array.prototype.random = function () {
                 imagesExist = thread.messages.find(message => message.files?.length > 0)
                 userSpeechExist = thread.messages.find(message => message.user != "U06TW2N6C5R" && !message.bot_id && !message.app_id)
             }
+            var largeMessage = thread.messages.map(msg => msg.text).join("\n\n")
+            var lines = ""
+             const matches = largeMessage.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/commit\/([a-f0-9]{40})$/gm)
+            if (matches) {
+                let promises = matches.map(async (url, i) => {
+                    var newUrl = url.replace("https://github.com/", "")
+                    var split = newUrl.split("/")
+                    var username = split[0]
+                    var repo = split[1]
+                    var hash = split[3]
+
+                    if (!username || !repo || !hash) return
+                    const api = await (await fetch(`https://api.github.com/repos/${username}/${repo}/commits/${hash}`)).json()
+                    return `Info about ${hash}:
+${humanReadableDiff(new Date(api.commit.author.date), new Date(record.get('Created At')))}
+Lines modified: + ${api.stats.additions} / - ${api.stats.deletions} / ± ${api.stats.total}
+URL: ${url}
+${api.commit.committer.email == "noreply@github.com" ? "Done via the Web UI" : "Done via a client"}
+${api.files.length} file(s) modified - ${api.files.filter(file => file.status == "added").length} added, ${api.files.filter(file => file.status == "modified").length} modified, ${api.files.filter(file => file.status == "deleted").length} deleted`
+                })
+
+
+                lines = (await Promise.all(promises)).join("\n\n")
+            }
 
             blocks.push(
                 {
@@ -337,6 +362,16 @@ Array.prototype.random = function () {
                         "type": "plain_text",
                         "text": `⚠️ The thread does not exist or is inaccessible to the Arcade Checker. No automatic checks were performed.`,
                         "emoji": true
+                    }
+                })
+            }
+
+            if (matches) {
+                blocks.push({
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `:github: Git Commit Info detected. Results are below:\n\n\`\`\`\n${lines}\n\`\`\``
                     }
                 })
             }
