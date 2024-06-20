@@ -257,6 +257,7 @@ Array.prototype.random = function () {
             var urlsExist = true
             var imagesExist = true
             var userSpeechExist = true
+            var r = null
             try {
                 thread = await app.client.conversations.replies({
                     channel: new URL(record.get('Code URL')).searchParams.get("cid"),
@@ -268,7 +269,7 @@ Array.prototype.random = function () {
 
             }
             if (!threadFetchErr) {
-                var r = await base(process.env.AIRTABLE_TABLE).find(record.get("User"))
+                r = await base(process.env.AIRTABLE_TABLE).find(record.get("User"))
                 urlsExist = thread.messages.find(message => getUrls(message.text).size > 0)
                 imagesExist = thread.messages.find(message => message.files?.length > 0)
                 userSpeechExist = thread.messages.find(message => message.user == r.get("Slack ID"))
@@ -301,6 +302,13 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
             }
 
             blocks.push(
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": `User: <@${r.get("Slack ID")}>`
+                    }
+                },
                 {
                     "type": "section",
                     "text": {
