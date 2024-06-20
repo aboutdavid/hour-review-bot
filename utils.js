@@ -2,7 +2,7 @@ function humanReadableDiff(date1, date2) {
     date1 = new Date(date1)
     date2 = new Date(date2)
     var seconds = Math.floor((date2 - date1) / 1000);
-    var prefix = seconds < 0 ? " until the hack hour starts" : " after the hack hour started";
+    var prefix = seconds < 0 ? " until the hack hour ends" : " after the hack hour ended";
     seconds = Math.abs(seconds);
 
     var interval = Math.floor(seconds / 31536000);

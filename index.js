@@ -289,7 +289,7 @@ Array.prototype.random = function () {
                     if (!username || !repo || !hash) return
                     const api = await (await fetch(`https://api.github.com/repos/${username}/${repo}/commits/${hash}`)).json()
                     return `Info about ${hash}:
-${humanReadableDiff(new Date(record.get('Created At')), new Date(api.commit.author.date))}
+${humanReadableDiff(new Date(new Date(record.get('Created At')).getTime() + (record.get("Minutes") * 60000)), new Date(api.commit.author.date))}
 Lines modified: + ${api.stats.additions} / - ${api.stats.deletions} / ± ${api.stats.total}
 URL: ${url}
 ${api.commit.committer.email == "noreply@github.com" ? "Done via the Web UI" : "Done via a client"}
