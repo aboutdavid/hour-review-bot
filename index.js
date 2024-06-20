@@ -444,7 +444,7 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
             } catch (e) {
             }
             const msg = await say({ blocks })
-            if (!thread) return
+            if (!thread || !thread?.messages?.length) return
             var r = await base(process.env.AIRTABLE_TABLE).find(record.get("User"))
 
             thread.messages.filter(message => message.user == r.get("Slack ID")).forEach(umsg => {
