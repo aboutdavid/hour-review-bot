@@ -268,13 +268,16 @@ Array.prototype.random = function () {
 
             }
             if (!threadFetchErr) {
+                var r = await base(process.env.AIRTABLE_TABLE).find(record.get("User"))
                 urlsExist = thread.messages.find(message => getUrls(message.text).size > 0)
                 imagesExist = thread.messages.find(message => message.files?.length > 0)
-                userSpeechExist = thread.messages.find(message => message.user != "U06TW2N6C5R" && !message.bot_id && !message.app_id)
+                userSpeechExist = thread.messages.find(message => message.user == r.get("Slack ID"))
             }
+
             var largeMessage = thread.messages.map(msg => msg.text).join("\n\n")
+
             var lines = ""
-             const matches = largeMessage.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/commit\/([a-f0-9]{40})$/gm)
+            const matches = largeMessage.match(/https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/commit\/([a-f0-9]{40})/gm)
             if (matches) {
                 let promises = matches.map(async (url, i) => {
                     var newUrl = url.replace("https://github.com/", "")
@@ -286,7 +289,7 @@ Array.prototype.random = function () {
                     if (!username || !repo || !hash) return
                     const api = await (await fetch(`https://api.github.com/repos/${username}/${repo}/commits/${hash}`)).json()
                     return `Info about ${hash}:
-${humanReadableDiff(new Date(api.commit.author.date), new Date(record.get('Created At')))}
+${humanReadableDiff(new Date(record.get('Created At')), new Date(api.commit.author.date))}
 Lines modified: + ${api.stats.additions} / - ${api.stats.deletions} / ± ${api.stats.total}
 URL: ${url}
 ${api.commit.committer.email == "noreply@github.com" ? "Done via the Web UI" : "Done via a client"}
@@ -350,7 +353,7 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
                 "type": "section",
                 "text": {
                     "type": "plain_text",
-                    "text": !userSpeechExist ? `⚠️ The user did not speak in the thread at all.` : "✅ The user did speak in the thread",
+                    "text": !userSpeechExist ? `⛔ The user did not speak in the thread at all.` : "✅ The user did speak in the thread",
                     "emoji": true
                 }
             })
@@ -431,7 +434,52 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
                         }
                     ]
                 })
-            await say({ blocks })
+            var thread = null
+            var text = ""
+            try {
+                thread = await app.client.conversations.replies({
+                    channel: new URL(record.get('Code URL')).searchParams.get("cid"),
+                    ts: new URL(record.get('Code URL')).searchParams.get("thread_ts")
+                })
+            } catch (e) {
+            }
+            const msg = await say({ blocks })
+            if (!thread) return
+            var r = await base(process.env.AIRTABLE_TABLE).find(record.get("User"))
+
+            thread.messages.filter(message => message.user == r.get("Slack ID")).forEach(umsg => {
+                text += `> ${umsg.text.replaceAll("> ", "")}\n\nA message by <@${umsg.user}> on ${new Date(Math.floor(umsg.ts * 1000.0)).toLocaleString('en-US', { timeZone: 'America/New_York', timeStyle: "short", dateStyle: "long" })} (EST)\n\n`
+            })
+
+            await app.client.chat.postMessage({
+                thread_ts: msg.ts,
+                channel: msg.channel,
+                text: `Below are ${thread.messages.filter(message => message.user == r.get("Slack ID")).length} message(s) from the user:`,
+                mrkdwn: true
+            });
+            let chunks = [];
+            let i = 0;
+
+            while (i < text.length) {
+                let end = Math.min(i + 40000, text.length);
+                if (end < text.length) {
+                    end = text.lastIndexOf('\n', end);
+                    if (end == -1) {
+                        end = Math.min(i + 40000, text.length);
+                    }
+                }
+                chunks.push(text.substring(i, end));
+                i = end;
+            }
+
+            for (let chunk of chunks) {
+                await app.client.chat.postMessage({
+                    thread_ts: msg.ts,
+                    channel: msg.channel,
+                    text: chunk,
+                    mrkdwn: true
+                });
+            }
 
         });
 
@@ -444,11 +492,14 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
             view: "Hour Review Bot View"
         }).all(async function (err, r) {
             var total = 0
+            var users = new Set()
             r.forEach(record => {
                 total += record._rawJson.fields.Minutes
+                users.add(record._rawJson.fields.User)
             })
             await respond(`Total minute(s) awaiting their fate: ${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-Total session(s) awaiting their fate: ${r.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`)
+Total session(s) awaiting their fate: ${r.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+Total user(s) awaiting their fate on their hours: ${users.size}`)
         })
 
     });

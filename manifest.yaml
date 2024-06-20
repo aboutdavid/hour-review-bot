@@ -6,6 +6,11 @@ features:
   bot_user:
     display_name: Hour Review Bot
     always_online: false
+  slash_commands:
+    - command: /reviewstats
+      url: https://hour-review-bot-3317b0b12501.herokuapp.com/slack/events
+      description: Shows review stats. Open to all.
+      should_escape: false
 oauth_config:
   scopes:
     bot:
@@ -19,8 +24,10 @@ oauth_config:
       - im:history
       - mpim:history
       - mpim:read
+      - commands
 settings:
   event_subscriptions:
+    request_url: https://hour-review-bot-3317b0b12501.herokuapp.com/slack/events
     bot_events:
       - message.channels
       - message.groups
@@ -28,6 +35,8 @@ settings:
       - message.mpim
   interactivity:
     is_enabled: true
+    request_url: https://hour-review-bot-3317b0b12501.herokuapp.com/slack/events
+    message_menu_options_url: https://hour-review-bot-3317b0b12501.herokuapp.com/slack/events
   org_deploy_enabled: false
-  socket_mode_enabled: true
+  socket_mode_enabled: false
   token_rotation_enabled: false
