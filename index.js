@@ -500,14 +500,11 @@ ${api.files.length} file(s) modified - ${api.files.filter(file => file.status ==
             view: "Hour Review Bot View"
         }).all(async function (err, r) {
             var total = 0
-            var users = new Set()
             r.forEach(record => {
                 total += record._rawJson.fields.Minutes
-                users.add(record.get("User"))
             })
             await respond(`Total minute(s) awaiting their fate: ${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-Total session(s) awaiting their fate: ${r.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-Total user(s) awaiting their fate on their hours: ${users.size.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`)
+Total session(s) awaiting their fate: ${r.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`)
         })
 
     });
